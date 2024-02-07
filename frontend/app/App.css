@@ -1,0 +1,67 @@
+.mainContainer {
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  font-size: 64px;
+  font-weight: bolder;
+  align-items: center;
+  justify-content: center;
+  color: #c9d1d9; /* Add light text color */
+}
+
+.resultContainer, .historyItem {
+  flex-direction: row;
+  display: flex;
+  width: 400px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.historyContainer {
+  flex-direction: column;
+  display: flex;
+  height: 200px;
+  align-items: center;
+  flex-grow: 5;
+  justify-content: flex-start;
+  background-color: rgba(36, 41, 46, 0.9); /* Add dark background color with opacity */
+}
+
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 260px;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.inputContainer > .errorLabel {
+  color: #ff6b6b; /* Update error color */
+  font-size: 12px;
+}
+
+.inputBox {
+  height: 48px;
+  width: 400px;
+  font-size: large;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Add light border color */
+  padding-left: 8px;
+  background-color: rgba(36, 41, 46, 0.9); /* Add dark background color with opacity */
+  color: #c9d1d9; /* Add light text color */
+  caret-color: #007bff; /* Add blue caret color */
+}
