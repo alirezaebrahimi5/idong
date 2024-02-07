@@ -31,6 +31,7 @@ class SendEmailView(APIView):
 
     def post(self, request):
         serializer = LoginSignupSerializer(data=request.data)
+        print(request.data)
         if serializer.is_valid():
             # if there is a user with given email it will send bad request
             user, created = CustomUser.objects.get_or_create(email=serializer.validated_data["email"],)

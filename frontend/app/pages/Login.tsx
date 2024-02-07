@@ -1,33 +1,44 @@
 import React, { useState } from "react";
 
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
 const Login = (props: any) => {
 
     const [email, setEmail] = useState("")
 
-    const [password, setPassword] = useState("")
-
     const [emailError, setEmailError] = useState("")
-
-    const [passwordError, setPasswordError] = useState("")
-
 
 
     const navigate = useNavigate();
 
 
+  const fetchLogin = async(e: any) => {
+    e.preventDefault()
+    const api = "http://localhost:8000/auth/email/"
+    const formData = new FormData();
+    formData.append("email", email);
+    await axios.post(api, formData,{
+            headers: {
+                "content-type": "multipart/form-data",
+            },
+    }).then((response) => {
+        if(response.status===201) {
+          navigate("/check");
+        }
 
-const onButtonClick = () => {
+      });
+    }
+
+
+
+const onButtonClick = (e: any) => {
 
 
         // Set initial error values to empty
 
         setEmailError("")
-
-        setPasswordError("")
-
 
         // Check if the user has entered both fields correctly
 
@@ -37,6 +48,8 @@ const onButtonClick = () => {
 
             return
 
+        } else {
+            fetchLogin(e)
         }
 
 

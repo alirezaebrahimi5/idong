@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
 
+    "corsheaders",
+
     "users",
     "carts",
     "expenses",
@@ -49,6 +51,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -149,6 +154,12 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1, ),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7, ),
 }
+
+# Cors header
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+]
 
 # Media config
 
