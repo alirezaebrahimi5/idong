@@ -1,3 +1,13 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Expense, ExpenseVote
+
+
+class KickVoteInline(admin.TabularInline):
+    model = ExpenseVote
+    extra = 0
+
+
+@admin.register(Expense)
+class ExpenseAdmin(admin.ModelAdmin):
+    list_display = ("id", "title")

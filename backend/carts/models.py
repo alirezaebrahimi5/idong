@@ -1,12 +1,13 @@
 from django.db import models
 
-from backend.users.models import CustomUser
+
+from users.models import CustomUser as User
 
 
 class Cart(models.Model):
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    users = models.ManyToManyField(CustomUser,)
-    total_price = models.DecimalField()
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_owner')
+    users = models.ManyToManyField(User, related_name='cart_users')
+    total_price = models.FloatField(default=0)
     users_sum = models.PositiveIntegerField()
     is_confirmed = models.BooleanField(default=False)
 
@@ -23,7 +24,7 @@ class Product(models.Model):
 
     title = models.CharField(max_length=256)
     description = models.TextField(null=True, blank=True)
-    price = models.DecimalField()
+    price = models.FloatField(default=0)
     count = models.PositiveIntegerField(default=1,)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -31,7 +32,7 @@ class Product(models.Model):
 
 
 class CartVote(models.Model):
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
 
     description = models.TextField(null=True, blank=True)

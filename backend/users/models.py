@@ -107,7 +107,7 @@ class Kick(models.Model):
 
 class KickVote(models.Model):
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kickvote_owner")
-    kick = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kickvote_kick")
+    kick = models.ForeignKey(Kick, on_delete=models.CASCADE, related_name="kickvote_kick")
 
     description = models.TextField(null=True, blank=True)
 

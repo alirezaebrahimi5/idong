@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, LoginCode
+from .models import CustomUser, LoginCode, Kick, KickVote
 
 
 @admin.register(CustomUser)
@@ -25,3 +25,15 @@ class UserAdmin(UserAdmin):
 @admin.register(LoginCode)
 class LoginCodeAdmin(admin.ModelAdmin):
     list_display = ('id', 'user',)
+
+
+class KickVoteInline(admin.TabularInline):
+    model = KickVote
+    extra = 0
+
+
+@admin.register(Kick)
+class KickAdmin(admin.ModelAdmin):
+    list_display = ("id", "title")
+
+    inlines = [KickVoteInline, ]

@@ -1,27 +1,17 @@
 from django.db import models
 
-from backend.users.models import CustomUser as User
-
-
-class Group(models.Model):
-    members = models.ManyToManyField(User,)
-
-    title = models.CharField(max_length=256, null=False, blank=False)
-    code = models.CharField(null=False, blank=False,)
-    image = models.ImageField(null=False, blank=False, upload_to='expense/group/')
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+from users.models import CustomUser as User
+from groups.models import Group
 
 
 class Expense(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    users = models.ManyToManyField(User, null=True, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="expense_owner")
+    users = models.ManyToManyField(User, null=True, blank=True, related_name="expense_users")
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
     title = models.CharField(max_length=256)
     description = models.TextField(null=True, blank=True)
-    price = models.DecimalField(null=True, blank=True)
+    price = models.FloatField(default=0)
     users_num = models.PositiveIntegerField(null=True, blank=True)
     image = models.ImageField(upload_to="expense/expense/", null=True, blank=True)
     is_close = models.BooleanField(default=False,)
