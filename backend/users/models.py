@@ -92,3 +92,25 @@ class LoginCode(models.Model):
             login_code.delete()
             LoginCode.objects.create(user=user, code=random_code)
         return random_code
+
+
+class Kick(models.Model):
+    target = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kick_target")
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kick_owner")
+
+    title = models.CharField(max_length=256)
+    description = models.TextField(null=True, blank=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class KickVote(models.Model):
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kickvote_owner")
+    kick = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kickvote_kick")
+
+    description = models.TextField(null=True, blank=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
