@@ -108,7 +108,13 @@ class LoginView(APIView):
             code.delete()
             # we return 406 for front-end to know its expired
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+        # delete the code
         code.delete()
+        # active the user if is not active
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+        # create the access and refresh token
         access_token = AccessToken.for_user(user)
         refresh_token = RefreshToken.for_user(user)
         return Response({"access_token": str(access_token),
