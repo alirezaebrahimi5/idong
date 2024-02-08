@@ -1,13 +1,14 @@
 from django.shortcuts import get_object_or_404
-from django.db import transaction
+from django.db.models import Q
 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .serializers import GroupAllSerializer, GroupCreateSerializer, GroupUpdateSerializer
+from .serializers import *
 from .models import Group
+from users.models import CustomUser
 
 
 class GroupListCreateView(APIView):
@@ -93,3 +94,40 @@ class GroupJoinView(APIView):
         group.members.add(request.user)
         group.save()
         return Response(status=status.HTTP_200_OK)
+
+
+class KickCreateView(APIView):
+    """
+    POST: Create a new kick for given target and group
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = KickCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            # user that is gunna get kicked
+            target = get_object_or_404(CustomUser, id=serializer.validated_data["target"])
+            group = get_object_or_404(Group, pk=serializer.validated_data["group"])
+
+            # check that both users be in that group
+            if self.request.user not in group.members.all() or target not in group.members.all():
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+            # check if there is no Kick for target
+            target_kick = Kick.objects.filter(target=target, group=group).count()
+            if target_kick >= 1:
+                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            # check owner don't any other Kick in that Group
+            owner_kick = Kick.objects.filter(owner=self.request.user, group=group).count()
+            if owner_kick >= 1:
+                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            # create a new Kick and send to client
+            kick = Kick.objects.create(target=target,
+                                       owner=self.request.user,
+                                       group=group,
+                                       description=serializer.validated_data["description"],
+                                       title=serializer.validated_data["title"])
+            return Response(KickSerializer(kick).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

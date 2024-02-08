@@ -8,5 +8,6 @@ urlpatterns = [
     path("group/<int:group_id>/", GroupUpdateDeleteDetailView.as_view()),
     path("group/create-link/", GroupInviteView.as_view()),
     path("group/join/", GroupJoinView.as_view()),
+    path("group/kick/", KickCreateView.as_view())
 
 ]

@@ -1,13 +1,11 @@
 import random
 import string
-import uuid
-
-from django.db import models
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from .managers import CustomUserManager
+from groups.models import Group
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -94,24 +92,4 @@ class LoginCode(models.Model):
             LoginCode.objects.create(user=user, code=random_code)
         return random_code
 
-
-class Kick(models.Model):
-    target = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kick_target")
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kick_owner")
-
-    title = models.CharField(max_length=256)
-    description = models.TextField(null=True, blank=True)
-
-    updated_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class KickVote(models.Model):
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="kickvote_owner")
-    kick = models.ForeignKey(Kick, on_delete=models.CASCADE, related_name="kickvote_kick")
-
-    description = models.TextField(null=True, blank=True)
-
-    updated_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
