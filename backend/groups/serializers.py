@@ -49,3 +49,6 @@ class KickSerializer(serializers.ModelSerializer):
         return count.members.count() - 2
 
 
+class KickVoteSerializer(serializers.Serializer):
+    kick_id = serializers.IntegerField(required=True, allow_null=False)
+    description = serializers.CharField(required=False, allow_null=False, allow_blank=False)

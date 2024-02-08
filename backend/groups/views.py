@@ -123,13 +123,14 @@ class KickCreateView(APIView):
             owner_kick = Kick.objects.filter(owner=self.request.user, group=group).count()
             if owner_kick >= 1:
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
-
+            group_counts = group.members.all().count()
             # create a new Kick and send to client
             kick = Kick.objects.create(target=target,
                                        owner=self.request.user,
                                        group=group,
                                        description=serializer.validated_data["description"],
-                                       title=serializer.validated_data["title"])
+                                       title=serializer.validated_data["title"],
+                                       vote_needed=group_counts-2)
             return Response(KickSerializer(kick).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -142,4 +143,43 @@ class KickCreateView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+class KickVoteView(APIView):
+    """
+    POST: get kick_id and make a vote for it if votes count reach target will get kick
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = KickVoteSerializer(data=request.data)
+        if serializer.is_valid():
+            # get the kick
+            kick = get_object_or_404(Kick, id=serializer.validated_data["kick_id"])
+
+            # check if user is in the Group
+            if self.request.user not in kick.group.members.all():
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+            # check if user is already vote
+            self_vote_count = KickVote.objects.filter(owner=self.request.user, kick=kick).count()
+            if self_vote_count != 0:
+                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            # now we create a vote
+            KickVote.objects.create(owner=self.request.user,
+                                    kick=kick,
+                                    description=serializer.validated_data["description"])
+
+            vote_counts = KickVote.objects.filter(kick=kick).count()
+
+            # if vote_counts reach we kick the user from the group
+            if vote_counts >= kick.vote_needed:
+                group = Group.objects.get(id=kick.group.id)
+                group.members.remove(kick.target.id)
+                # delete all the KickVotes
+                KickVote.objects.filter(kick=kick).delete()
+                kick.delete()
+                return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
