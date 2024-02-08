@@ -99,6 +99,7 @@ class GroupJoinView(APIView):
 class KickCreateView(APIView):
     """
     POST: Create a new kick for given target and group
+    DELETE: deletes kick with given kick_id and owner must be requester
     """
 
     permission_classes = (IsAuthenticated,)
@@ -131,3 +132,14 @@ class KickCreateView(APIView):
                                        title=serializer.validated_data["title"])
             return Response(KickSerializer(kick).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        kick_id = self.request.query_params.get("kick_id")
+        if not kick_id:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        kick = get_object_or_404(Kick, pk=kick_id, owner=self.request.user)
+        kick.delete()
+        return Response(status=status.HTTP_200_OK)
+
+
+
