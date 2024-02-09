@@ -39,7 +39,8 @@ class GroupUpdateDeleteDetailView(APIView):
     """
     GET: shows Detail of the user
     PUT: Update a group (can get title, image)
-    DELETE: Delete a group"""
+    DELETE: Delete a group
+    """
     def get(self, request, group_id: int):
         group = get_object_or_404(Group, id=group_id, members__in=[request.user])
         serializer = GroupAllSerializer(group)
@@ -96,6 +97,27 @@ class GroupJoinView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+class GroupMemberLeaveView(APIView):
+    """
+    DELETE: user that request this will get deleted from the group
+    """
+    def delete(self, request):
+        group_id = self.request.query_params.get("group_id", None)
+        if not group_id:
+            return Response({"message": "No group id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        group = get_object_or_404(Group, id=group_id)
+
+        if self.request.user not in group.members.all():
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        group.members.remove(self.request.user)
+        if group.members.count() == 0:
+            group.delete()
+        return Response(status=status.HTTP_200_OK)
+
+
+
 class KickCreateView(APIView):
     """
     POST: Create a new kick for given target and group
@@ -110,6 +132,11 @@ class KickCreateView(APIView):
             # user that is gunna get kicked
             target = get_object_or_404(CustomUser, id=serializer.validated_data["target"])
             group = get_object_or_404(Group, pk=serializer.validated_data["group"])
+
+            # check if group members are equal or lower than 2 then it's impossible to create a Kick
+            if group.members.count() <= 2:
+                return Response({"message": "group members count lower or equal to 2"},
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
 
             # check that both users be in that group
             if self.request.user not in group.members.all() or target not in group.members.all():

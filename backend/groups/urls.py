@@ -10,5 +10,6 @@ urlpatterns = [
     path("group/join/", GroupJoinView.as_view()),
     path("group/kick/", KickCreateView.as_view()),
     path("group/kick-vote/", KickVoteView.as_view()),
+    path("group/leave-group/", GroupMemberLeaveView.as_view())
 
 ]
