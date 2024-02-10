@@ -78,3 +78,8 @@ class CartDetailSerializer(serializers.ModelSerializer):
     def get_group(self, obj):
         group = Group.objects.get(id=obj.group.id)
         return GroupSerializer(group).data
+
+
+class VoteCartSerializer(serializers.Serializer):
+    description = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="No description")
+    cart = serializers.IntegerField(required=True, allow_null=False)

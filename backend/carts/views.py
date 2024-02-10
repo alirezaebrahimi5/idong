@@ -94,6 +94,10 @@ class CartProductView(APIView):
             if self.request.user not in cart.group.members.all():
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
+            # if cart is confirmed we will throw an error. (means vote is complete)
+            if cart.is_confirmed:
+                return Response(status=status.HTTP_423_LOCKED)
+
             product = Product.objects.create(
                 cart=cart,
                 title=serializer.validated_data["title"],
@@ -122,6 +126,10 @@ class CartProductView(APIView):
             if self.request.user not in cart.group.members.all():
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
+            # if cart is confirmed we will throw an error. (means vote is complete)
+            if cart.is_confirmed:
+                return Response(status=status.HTTP_423_LOCKED)
+
             # update the cart pricing
             cart.total_price -= (product.price * product.count)
             cart.total_price += (serializer.validated_data["price"] * serializer.validated_data["count"])
@@ -145,7 +153,60 @@ class CartProductView(APIView):
 
         product_total_price = product.price * product.count
         cart = get_object_or_404(Cart, id=product.cart.id)
+
+        # if cart is confirmed we will throw an error. (means vote is complete)
+        if cart.is_confirmed:
+            return Response(status=status.HTTP_423_LOCKED)
         cart.total_price -= product_total_price
         cart.save()
         product.delete()
         return Response({"message": "Product has been deleted"}, status=status.HTTP_200_OK)
+
+
+class VoteCartView(APIView):
+    """
+    POST: make a vote for a cart if vote get complete cart will get confirm
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = VoteCartSerializer(data=request.data)
+        if serializer.is_valid():
+            cart = get_object_or_404(Cart, id=serializer.validated_data["cart"])
+
+            # check if user is in group
+            if self.request.user not in cart.group.members.all():
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+            # check if user is in cart users
+            if self.request.user not in cart.users.all():
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
+            # if cart is confirmed we will throw an error. (means vote is complete)
+            if cart.is_confirmed:
+                return Response(status=status.HTTP_423_LOCKED)
+
+            # if with this new vote cart vote will complete then
+            # we delete all the votes and confirm the cart
+            votes = CartVote.objects.filter(cart=cart)
+
+            # if user is already vote throw a 409 error
+            if votes.filter(owner=self.request.user).count() >= 1:
+                return Response(status=status.HTTP_409_CONFLICT)
+
+            votes_counts = votes.count() + 1
+
+            if votes_counts >= cart.group.members.all().count():
+                CartVote.objects.filter(cart=cart).delete()
+                cart.is_confirmed = True
+                cart.save()
+                return Response(status=status.HTTP_202_ACCEPTED)
+
+            CartVote.objects.create(
+                owner=self.request.user,
+                cart=cart,
+                description=serializer.validated_data["description"],
+            )
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
