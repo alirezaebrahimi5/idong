@@ -13,8 +13,25 @@ from .serializers import *
 class CartCreateView(APIView):
     """
     POST: create a cart for given group
+    GET: Shows a Cart with given ID (Detail)
     """
     permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        cart_id = request.query_params.get('cart_id')
+
+        # check if there is cart_id
+        if not cart_id:
+            return Response({'message': 'please give am cart_id'}, status.HTTP_400_BAD_REQUEST)
+
+        cart = get_object_or_404(Cart, id=cart_id)
+
+        # check if user is in the group
+        if self.request.user not in cart.group.members.all():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = CartDetailSerializer(cart)
+        return Response(serializer.data, status.HTTP_200_OK)
 
     def post(self, request):
         serializer = CartCreateSerializer(data=request.data)
@@ -59,6 +76,8 @@ class CartCreateView(APIView):
 class CartProductView(APIView):
     """
     POST: Creates a new Product and add it to given Cart
+    PUT: Updates a product
+    DELETE: Deletes a product
     """
     permission_classes = (IsAuthenticated,)
 

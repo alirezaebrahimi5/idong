@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from .models import Cart, Product
+from groups.models import Group
+from users.models import CustomUser as User, CustomUser
 
 
 class CartCreateSerializer(serializers.ModelSerializer):
@@ -29,7 +31,7 @@ class CartProductSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        exclude = ("created_at", )
+        exclude = ("updated_at", )
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
@@ -42,3 +44,37 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         exclude = ("created_at", "updated_at", "cart")
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "email", "name", "pfp")
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ("id", "title", "image", "created_at")
+
+
+class CartDetailSerializer(serializers.ModelSerializer):
+    owner = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
+    group = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cart
+        exclude = ("updated_at", )
+
+    def get_owner(self, obj):
+        owner = CustomUser.objects.get(id=obj.owner.id)
+        return UserSerializer(owner).data
+
+    def get_users(self, obj):
+        users = obj.users.all()
+        return UserSerializer(users, many=True).data
+
+    def get_group(self, obj):
+        group = Group.objects.get(id=obj.group.id)
+        return GroupSerializer(group).data
