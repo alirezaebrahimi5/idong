@@ -80,7 +80,7 @@ class CartProductView(APIView):
                 title=serializer.validated_data["title"],
                 description=serializer.validated_data["description"],
                 price=serializer.validated_data["price"],
-                count=serializer.validated_data["count"],)
+                count=serializer.validated_data["count"], )
             product_price = product.price * product.count
             cart.total_price += product_price
             cart.save()
@@ -89,7 +89,7 @@ class CartProductView(APIView):
 
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request,):
+    def put(self, request):
         serializer = ProductUpdateSerializer(data=request.data)
         if serializer.is_valid():
             product = get_object_or_404(Product, id=serializer.validated_data["id"])
@@ -113,3 +113,20 @@ class CartProductView(APIView):
             return Response(serializer.data, status.HTTP_200_OK)
 
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        product_id = self.request.query_params.get("id", None)
+        if not product_id:
+            return Response({"message": "please give an id"}, status=status.HTTP_400_BAD_REQUEST)
+        product = get_object_or_404(Product, id=product_id)
+
+        # check if user is in cart
+        if self.request.user not in product.cart.users.all():
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        product_total_price = product.price * product.count
+        cart = get_object_or_404(Cart, id=product.cart.id)
+        cart.total_price -= product_total_price
+        cart.save()
+        product.delete()
+        return Response({"message": "Product has been deleted"}, status=status.HTTP_200_OK)
