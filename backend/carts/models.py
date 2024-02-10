@@ -1,13 +1,15 @@
 from django.db import models
 
-
+from groups.models import Group
 from users.models import CustomUser as User
 
 
 class Cart(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_owner')
     users = models.ManyToManyField(User, related_name='cart_users')
-    total_price = models.FloatField(default=0)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='cart_group')
+
+    total_price = models.FloatField(default=0, null=True, blank=True)
     users_sum = models.PositiveIntegerField()
     is_confirmed = models.BooleanField(default=False)
 
@@ -39,4 +41,3 @@ class CartVote(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-

@@ -13,7 +13,6 @@ class Group(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-
 class Kick(models.Model):
     target = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE, related_name="kick_target")
     owner = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE, related_name="kick_owner")

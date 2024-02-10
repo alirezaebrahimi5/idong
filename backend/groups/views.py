@@ -117,7 +117,6 @@ class GroupMemberLeaveView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-
 class KickCreateView(APIView):
     """
     POST: Create a new kick for given target and group
